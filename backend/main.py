@@ -71,7 +71,7 @@ async def ask_text(request: QueryRequest) -> QueryResponse:
 @app.post("/ask/image")
 async def ask_image(request: ImageRequest):
     try:
-        model = genai.GenerativeModel("gemini-1.5-pro-latest")
+        model = genai.GenerativeModel("gemini-2.5-flash")
 
         response = model.generate_content(
             [{"role": "user", "parts": [request.prompt]}],

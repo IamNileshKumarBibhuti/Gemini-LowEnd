@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Gemini AI</title>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: linear-gradient(-45deg, #ff9966, #ff8855, #ffaa88, #ffbb99);
+        background-size: 400% 400%;
+        animation: gradientShift 20s ease infinite;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .container {
+        width: 100%;
+        max-width: 700px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 40px;
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 40px rgba(100, 200, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    h1 {
+        color: #222;
+        margin-bottom: 8px;
+        font-size: 36px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #ff8855, #ff9966);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .subtitle {
+        color: #666;
+        font-size: 15px;
+        margin-bottom: 28px;
+    }
+
+    textarea {
+        width: 100%;
+        font-size: 15px;
+        height: 140px;
+        padding: 16px;
+        border-radius: 14px;
+        border: 2px solid #e0e0e0;
+        background: linear-gradient(135deg, #fafbff 0%, #f5f0ff 100%);
+        resize: vertical;
+        overflow-y: auto;
+        transition: all 0.3s ease;
+        font-family: inherit;
+        color: #333;
+    }
+
+    textarea:focus {
+        outline: none;
+        border-color: #ff8855;
+        box-shadow: 0 0 0 4px rgba(255, 136, 85, 0.15);
+        background: linear-gradient(135deg, #ffffff 0%, #fff8f0 100%);
+    }
+
+    textarea::placeholder {
+        color: #999;
+    }
+
+    /* Custom Scrollbar */
+    textarea::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    textarea::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    textarea::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #ee7752, #e73c7e);
+        border-radius: 10px;
+    }
+
+    textarea::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #d96643, #d32b6e);
+    }
+
+    .button-group {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    button {
+        flex: 1;
+        padding: 14px 24px;
+        font-size: 16px;
+        border-radius: 12px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.2);
+        transition: left 0.3s ease;
+        z-index: -1;
+    }
+
+    button:hover::before {
+        left: 100%;
+    }
+
+    #askText {
+        background: linear-gradient(135deg, #ff8855, #ff9966);
+        color: white;
+        box-shadow: 0 8px 20px rgba(255, 136, 85, 0.35);
+    }
+
+    #askText:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(255, 136, 85, 0.45);
+    }
+
+    #askText:active {
+        transform: translateY(0);
+    }
+
+    #askImage {
+        background: linear-gradient(135deg, #ffaa88, #ff9966);
+        color: white;
+        box-shadow: 0 8px 20px rgba(255, 170, 136, 0.35);
+    }
+
+    #askImage:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(255, 170, 136, 0.45);
+    }
+
+    #askImage:active {
+        transform: translateY(0);
+    }
+
+    button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    #loading {
+        background: linear-gradient(135deg, #fff8f0, #fffbf5);
+        padding: 16px;
+        border-radius: 12px;
+        margin-top: 20px;
+        display: none;
+        text-align: center;
+        color: #ff8855;
+        font-weight: 600;
+        border: 2px solid #ffd0b0;
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+
+    #error {
+        background: linear-gradient(135deg, #ff9966, #ff8855);
+        color: white;
+        padding: 14px 16px;
+        border-radius: 12px;
+        margin-top: 16px;
+        display: none;
+        font-weight: 500;
+        box-shadow: 0 6px 20px rgba(255, 136, 85, 0.4);
+        border-left: 4px solid #fff;
+    }
+
+    #answerBox {
+        background: linear-gradient(135deg, #fafbff 0%, #f5f0ff 100%);
+        padding: 28px;
+        border-radius: 16px;
+        margin-top: 24px;
+        max-height: 600px;
+        overflow-y: auto;
+        font-size: 15px;
+        line-height: 1.8;
+        color: #333;
+        border: 2px solid #e0e0e0;
+        display: none;
+        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    #answerBox::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #answerBox::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    #answerBox::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #ee7752, #e73c7e);
+        border-radius: 10px;
+    }
+
+    #answerBox::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #d96643, #d32b6e);
+    }
+
+    #answerBox.show {
+        display: block;
+        animation: slideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    #answerBox h1, #answerBox h2, #answerBox h3, #answerBox h4, #answerBox h5, #answerBox h6 {
+        color: #ff8855;
+        margin-top: 24px;
+        margin-bottom: 14px;
+        font-weight: 800;
+    }
+
+    #answerBox h1 { font-size: 28px; }
+    #answerBox h2 { font-size: 24px; }
+    #answerBox h3 { font-size: 20px; }
+    #answerBox h4 { font-size: 18px; }
+    #answerBox h5 { font-size: 16px; }
+    #answerBox h6 { font-size: 15px; }
+
+    #answerBox table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        background: white;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    #answerBox th {
+        background: linear-gradient(135deg, #ff8855, #ff9966);
+        color: white;
+        padding: 16px;
+        text-align: left;
+        font-weight: 700;
+        border: none;
+    }
+
+    #answerBox td {
+        padding: 14px 16px;
+        border-bottom: 1px solid #e8e8e8;
+    }
+
+    #answerBox tr:last-child td {
+        border-bottom: none;
+    }
+
+    #answerBox tr:nth-child(even) {
+        background: #fffaf0;
+    }
+
+    #answerBox tr:hover {
+        background: linear-gradient(135deg, #fff5f0, #fffaf0);
+    }
+
+    #answerBox p {
+        margin-bottom: 16px;
+    }
+
+    #answerBox ul, #answerBox ol {
+        margin-left: 28px;
+        margin-bottom: 16px;
+    }
+
+    #answerBox li {
+        margin-bottom: 8px;
+    }
+
+    #answerBox code {
+        background: linear-gradient(135deg, #fff8f0, #ffd9b3);
+        color: #d95533;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    #answerBox pre {
+        background: #1e1e1e;
+        color: #e0e0e0;
+        padding: 18px;
+        border-radius: 12px;
+        overflow-x: auto;
+        margin: 16px 0;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        line-height: 1.6;
+        border-left: 4px solid #ff8855;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    #answerBox pre code {
+        background: none;
+        color: #e0e0e0;
+        padding: 0;
+    }
+
+    #answerBox strong {
+        color: #ff8855;
+        font-weight: 700;
+    }
+
+    #answerBox em {
+        color: #ff9966;
+        font-style: italic;
+    }
+
+    #answerBox blockquote {
+        border-left: 4px solid #ff8855;
+        margin: 16px 0;
+        padding-left: 18px;
+        color: #666;
+        font-style: italic;
+        background: rgba(255, 136, 85, 0.08);
+        padding: 14px 18px;
+        border-radius: 8px;
+    }
+
+    #answerBox hr {
+        border: none;
+        border-top: 2px solid #e0e0e0;
+        margin: 24px 0;
+    }
+</style>
+
+</head>
+<body>
+
+<div class="container">
+    <h1>✨ Gemini AI</h1>
+    <p class="subtitle">Ask anything and get instant answers</p>
+
+    <textarea id="queryInput" placeholder="Type your question here..."></textarea>
+
+    <div class="button-group">
+        <button id="askText">Ask Gemini (Text)</button>
+        <button id="askImage">Generate Image</button>
+    </div>
+
+    <div id="loading"></div>
+    <div id="error"></div>
+    <div id="answerBox"></div>
+</div>
+
+
+<script>
+const API_URL = "http://localhost:8000";
+
+// ===================================
+// MARKDOWN FORMATTER
+// ===================================
+function formatMarkdown(text) {
+    let html = text;
+
+    // Escape HTML special chars first
+    html = html
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+    // Parse markdown tables (| Header | Header |)
+    html = parseMarkdownTables(html);
+
+    // Code blocks (``` ... ```)
+    html = html.replace(/```(.*?)```/gs, (match, code) => {
+        return `<pre><code>${code.trim()}</code></pre>`;
+    });
+
+    // Headers - ALL levels (##### through ######)
+    html = html.replace(/^###### (.*?)$/gm, "<h6>$1</h6>");
+    html = html.replace(/^##### (.*?)$/gm, "<h5>$1</h5>");
+    html = html.replace(/^#### (.*?)$/gm, "<h4>$1</h4>");
+    html = html.replace(/^### (.*?)$/gm, "<h3>$1</h3>");
+    html = html.replace(/^## (.*?)$/gm, "<h2>$1</h2>");
+    html = html.replace(/^# (.*?)$/gm, "<h1>$1</h1>");
+
+    // Horizontal line
+    html = html.replace(/^---$/gm, "<hr>");
+    html = html.replace(/^\*\*\*$/gm, "<hr>");
+    html = html.replace(/^___$/gm, "<hr>");
+
+    // Bold (**text**)
+    html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+    // Italic (*text*)
+    html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
+
+    // Inline code (`code`)
+    html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+
+    // Unordered list (- item)
+    html = html.replace(/^\s*[-*+] (.*?)$/gm, "<li>$1</li>");
+    html = html.replace(/(<li>.*?<\/li>)/s, "<ul>$1</ul>");
+
+    // Ordered list (1. item)
+    html = html.replace(/^\s*\d+\. (.*?)$/gm, "<li>$1</li>");
+
+    // Blockquote (> text)
+    html = html.replace(/^> (.*?)$/gm, "<blockquote>$1</blockquote>");
+
+    // Paragraphs (double newline)
+    html = html.replace(/\n\n+/g, "</p><p>");
+    html = "<p>" + html + "</p>";
+
+    // Clean up empty paragraphs
+    html = html.replace(/<p><\/p>/g, "");
+    html = html.replace(/<p>(<[hu])/g, "$1");
+    html = html.replace(/(<\/[hu]>)<\/p>/g, "$1");
+    html = html.replace(/<p>(<table)/g, "$1");
+    html = html.replace(/(<\/table>)<\/p>/g, "$1");
+    html = html.replace(/<p>(<pre)/g, "$1");
+    html = html.replace(/(<\/pre>)<\/p>/g, "$1");
+    html = html.replace(/<p>(<blockquote)/g, "$1");
+    html = html.replace(/(<\/blockquote>)<\/p>/g, "$1");
+    html = html.replace(/<p>(<ul)/g, "$1");
+    html = html.replace(/(<\/ul>)<\/p>/g, "$1");
+    html = html.replace(/<p>(<ol)/g, "$1");
+    html = html.replace(/(<\/ol>)<\/p>/g, "$1");
+    html = html.replace(/<p>(<hr)/g, "$1");
+
+    return html;
+}
+
+// ===================================
+// MARKDOWN TABLE PARSER
+// ===================================
+function parseMarkdownTables(text) {
+    // Match markdown tables: lines with pipes
+    const tableRegex = /(\|.*\|(?:\n\|[-:\s|]+\|\n(?:\|.*\|(?:\n|$))+))/gm;
+    
+    return text.replace(tableRegex, (match) => {
+        const lines = match.trim().split('\n').filter(line => line.trim());
+        if (lines.length < 2) return match;
+
+        // Check if second line is separator
+        const isSeparator = /^\|[-:\s|]+\|$/.test(lines[1]);
+        if (!isSeparator) return match;
+
+        // Parse header
+        const headerCells = lines[0]
+            .split('|')
+            .map(cell => cell.trim())
+            .filter(cell => cell);
+        
+        // Parse rows
+        const rows = lines.slice(2).map(line =>
+            line
+                .split('|')
+                .map(cell => cell.trim())
+                .filter(cell => cell)
+        );
+
+        // Build HTML table
+        let html = '<table><thead><tr>';
+        headerCells.forEach(cell => {
+            html += `<th>${cell}</th>`;
+        });
+        html += '</tr></thead><tbody>';
+
+        rows.forEach(row => {
+            html += '<tr>';
+            row.forEach(cell => {
+                html += `<td>${cell}</td>`;
+            });
+            html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+        return html;
+    });
+}
+
+const askTextBtn = document.getElementById("askText");
+const askImgBtn = document.getElementById("askImage");
+const queryInput = document.getElementById("queryInput");
+const loading = document.getElementById("loading");
+const errorBox = document.getElementById("error");
+const answerBox = document.getElementById("answerBox");
+
+
+// --------------------------------------
+// TEXT GENERATION
+// --------------------------------------
+askTextBtn.addEventListener("click", async () => {
+    const query = queryInput.value.trim();
+    if (!query) return;
+
+    loading.textContent = "Thinking...";
+    errorBox.style.display = "none";
+    answerBox.innerHTML = "";
+
+    try {
+        const res = await fetch(`${API_URL}/ask/text`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query })
+        });
+
+        if (!res.ok) throw new Error(await res.text());
+
+        const data = await res.json();
+        const formattedHTML = formatMarkdown(data.answer);
+        answerBox.innerHTML = formattedHTML;
+        answerBox.classList.add("show");
+
+    } catch (err) {
+        errorBox.style.display = "block";
+        errorBox.textContent = "Error: " + err.message;
+    } finally {
+        loading.textContent = "";
+    }
+});
+
+
+// --------------------------------------
+// IMAGE GENERATION (FULLY FIXED)
+// --------------------------------------
+askImgBtn.addEventListener("click", async () => {
+    const prompt = queryInput.value.trim();
+    if (!prompt) return;
+
+    loading.textContent = "Generating image...";
+    errorBox.style.display = "none";
+    answerBox.innerHTML = "";
+
+    try {
+        const res = await fetch(`${API_URL}/ask/image`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt })
+        });
+
+        if (!res.ok) throw new Error(await res.text());
+
+        const data = await res.json();
+
+        if (!data.images || data.images.length === 0) {
+            throw new Error("No images returned.");
+        }
+
+        // Loop through each returned image
+        data.images.forEach(imgObj => {
+            
+            // CASE 1 → If backend returns raw base64 string only
+            if (typeof imgObj === "string") {
+                const img = document.createElement("img");
+                img.src = `data:image/png;base64,${imgObj}`;
+                img.style.width = "100%";
+                img.style.marginTop = "15px";
+                answerBox.appendChild(img);
+                answerBox.classList.add("show");
+                return;
+            }
+
+            // CASE 2 → Backend returns proper object
+            const base64 = imgObj.data || imgObj.base64 || imgObj.image || "";
+            const mime = imgObj.mime_type || "image/png";
+
+            const img = document.createElement("img");
+            img.src = `data:${mime};base64,${base64}`;
+            img.style.width = "100%";
+            img.style.marginTop = "15px";
+            answerBox.appendChild(img);
+            answerBox.classList.add("show");
+        });
+
+    } catch (err) {
+        errorBox.style.display = "block";
+        errorBox.textContent = "Error: " + err.message;
+    } finally {
+        loading.textContent = "";
+    }
+});
+</script>
+
+
+</body>
+</html>

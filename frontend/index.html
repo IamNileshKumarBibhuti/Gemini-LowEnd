@@ -387,7 +387,8 @@
         <button id="askImage">Generate Image</button>
     </div>
 
-    <div id="loading"></div>
+    <div id="loading">Thinking...</div>
+
     <div id="error"></div>
     <div id="answerBox"></div>
 </div>
@@ -537,9 +538,11 @@ askTextBtn.addEventListener("click", async () => {
     const query = queryInput.value.trim();
     if (!query) return;
 
-    loading.textContent = "Thinking...";
-    errorBox.style.display = "none";
-    answerBox.innerHTML = "";
+   loading.style.display = "block";
+   loading.textContent = "Thinking...";
+   errorBox.style.display = "none";
+   answerBox.innerHTML = "";
+
 
     try {
         const res = await fetch(`${API_URL}/ask/text`, {
@@ -559,7 +562,8 @@ askTextBtn.addEventListener("click", async () => {
         errorBox.style.display = "block";
         errorBox.textContent = "Error: " + err.message;
     } finally {
-        loading.textContent = "";
+        loading.style.display = "none";
+
     }
 });
 
@@ -571,9 +575,11 @@ askImgBtn.addEventListener("click", async () => {
     const prompt = queryInput.value.trim();
     if (!prompt) return;
 
-    loading.textContent = "Generating image...";
-    errorBox.style.display = "none";
-    answerBox.innerHTML = "";
+   loading.style.display = "block";
+   loading.textContent = "Generating image...";
+   errorBox.style.display = "none";
+   answerBox.innerHTML = "";
+
 
     try {
         const res = await fetch(`${API_URL}/ask/image`, {
@@ -620,7 +626,8 @@ askImgBtn.addEventListener("click", async () => {
         errorBox.style.display = "block";
         errorBox.textContent = "Error: " + err.message;
     } finally {
-        loading.textContent = "";
+        loading.style.display = "none";
+
     }
 });
 </script>
